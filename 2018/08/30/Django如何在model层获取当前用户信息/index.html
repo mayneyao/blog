@@ -257,7 +257,7 @@
 
     
         <meta property="article:published_time" content="Thu Aug 30 2018 14:22:58 GMT+0800">
-        <meta property="article:modified_time" content="Thu Aug 30 2018 14:24:59 GMT+0800">
+        <meta property="article:modified_time" content="Thu Aug 30 2018 15:30:10 GMT+0800">
     
 
     <!-- The Twitter Card protocol -->
@@ -280,7 +280,7 @@
     "mainEntityOfPage": "https://blog.gine.me/2018/08/30/Django如何在model层获取当前用户信息/index.html",
     "headline": "Django如何在model层获取当前用户信息",
     "datePublished": "Thu Aug 30 2018 14:22:58 GMT+0800",
-    "dateModified": "Thu Aug 30 2018 14:24:59 GMT+0800",
+    "dateModified": "Thu Aug 30 2018 15:30:10 GMT+0800",
     "author": {
         "@type": "Person",
         "name": "Mayne",
@@ -517,7 +517,7 @@
                 <div id="post-content" class="mdl-color-text--grey-700 mdl-card__supporting-text fade out">
     
         <h1 id="django-如何在model层获取到当前用户的信息"><a href="#django-如何在model层获取到当前用户的信息" class="headerlink" title="django 如何在model层获取到当前用户的信息"></a>django 如何在model层获取到当前用户的信息</h1><h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>要做一个统一的log模块，用来存储模型实例的变更记录。既然是log，就要知道是谁操作的。在django中分为view层和model层。在view层面可以很方面的获取到request信息，但是在model层是获取不到。</p>
-<p>搜索了一番，发现了很做骚操作，记录一下并简要的</p>
+<p>搜索了一番，发现了很做骚操作，简要地记录一下</p>
 <p>关键词: <code>django get current user in model/signal</code></p>
 <h2 id="方法一"><a href="#方法一" class="headerlink" title="方法一"></a>方法一</h2><p>也是最常见的方法，中间件中获取request信息，保存在当前线程中</p>
 <pre><code>from threading import current_thread
