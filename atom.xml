@@ -30,7 +30,35 @@
         
         
           &lt;h1 id=&quot;项目虚拟环境自动化&quot;&gt;&lt;a href=&quot;#项目虚拟环境自动化&quot; class=&quot;headerlink&quot; title=&quot;项目虚拟环境自动化&quot;&gt;&lt;/a&gt;项目虚拟环境自动化&lt;/h1&gt;&lt;ul&gt;
-&lt;li&gt;使用 &lt;code&gt;pipenv&lt;/code&gt;
+&lt;li&gt;使用 &lt;code&gt;pipenv&lt;/code&gt; 为每个项目创建虚拟环境&lt;/li&gt;
+&lt;li&gt;使用 &lt;code&gt;autoenv&lt;/code&gt; 在进入项目根目录的时候自动激活虚拟环境&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;安装-autoenv&quot;&gt;&lt;a href=&quot;#安装-autoenv&quot; class=&quot;headerlink&quot; title=&quot;安装 autoenv&quot;&gt;&lt;/a&gt;安装 autoenv&lt;/h2&gt;&lt;pre&gt;&lt;code&gt;$ brew install autoenv
+$ echo &amp;quot;source $(brew --prefix autoenv)/activate.sh&amp;quot; &amp;gt;&amp;gt; ~/.bash_profile
+
+# 如果是zsh bash_profile 换成 zshrc
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&quot;autoenv-的使用方法&quot;&gt;&lt;a href=&quot;#autoenv-的使用方法&quot; class=&quot;headerlink&quot; title=&quot;autoenv 的使用方法&quot;&gt;&lt;/a&gt;autoenv 的使用方法&lt;/h2&gt;&lt;p&gt;在项目根目录下建立 &lt;code&gt;.env&lt;/code&gt; 文件，文件的内容是一个 shell 命令， 用来激活虚拟环境。&lt;/p&gt;
+&lt;p&gt;例如我有一个 &lt;code&gt;test&lt;/code&gt; 的虚拟环境，那么在 &lt;code&gt;test&lt;/code&gt; 的根目录下建立 &lt;code&gt;.env&lt;/code&gt; 内容如下&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# .env
+pipenv shell
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&quot;统一为已有虚拟环境创建-env-文件&quot;&gt;&lt;a href=&quot;#统一为已有虚拟环境创建-env-文件&quot; class=&quot;headerlink&quot; title=&quot;统一为已有虚拟环境创建 .env 文件&quot;&gt;&lt;/a&gt;统一为已有虚拟环境创建 .env 文件&lt;/h2&gt;&lt;p&gt;已经使用 &lt;code&gt;pipenv&lt;/code&gt; 有一段时间了，工作区也积累了很多虚拟环境。用以下脚本为每个虚拟环境统一创建 &lt;code&gt;.env&lt;/code&gt; 文件&lt;/p&gt;
+&lt;p&gt;在虚拟环境目录下，例如 &lt;code&gt;/Users/mayne/.local/share/virtualenvs&lt;/code&gt; 执行下面的 &lt;code&gt;python&lt;/code&gt; 脚本&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;import os
+
+all_env = os.listdir(&amp;apos;.&amp;apos;)
+
+for env in all_env:
+    project_info_file = os.path.join(env, &amp;apos;.project&amp;apos;)
+    if os.path.exists(project_info_file):
+        with open(project_info_file) as f:
+            env_dir = f.read()
+            env_script = &amp;apos;pipenv shell&amp;apos;
+            env_script_file = os.path.join(env_dir, &amp;apos;.env&amp;apos;)
+            with open(env_script_file, &amp;apos;+w&amp;apos;) as f:
+                f.write(env_script)
+                print(&amp;apos;{} 已创建.env文件&amp;apos;.format(env_dir))
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;pipenv&lt;/code&gt; 在新版中才引入 .project 这个文件，老的虚拟环境可能没有这个文件，也就无法自动创建 &lt;code&gt;.env&lt;/code&gt;
         
       
     
@@ -56,7 +84,56 @@
       
         
         
-          &lt;h1 id=&quot;django-如何在model层获取到当前用户的信息&quot;&gt;&lt;a href=&quot;#django-如何在model层获取到当前用户的信息&quot; class=&quot;headerlink&quot; title=&quot;django 如何在model层获取到当前用户的信息&quot;&gt;&lt;/a&gt;django
+          &lt;h1 id=&quot;django-如何在model层获取到当前用户的信息&quot;&gt;&lt;a href=&quot;#django-如何在model层获取到当前用户的信息&quot; class=&quot;headerlink&quot; title=&quot;django 如何在model层获取到当前用户的信息&quot;&gt;&lt;/a&gt;django 如何在model层获取到当前用户的信息&lt;/h1&gt;&lt;h2 id=&quot;起因&quot;&gt;&lt;a href=&quot;#起因&quot; class=&quot;headerlink&quot; title=&quot;起因&quot;&gt;&lt;/a&gt;起因&lt;/h2&gt;&lt;p&gt;要做一个统一的log模块，用来存储模型实例的变更记录。既然是log，就要知道是谁操作的。在django中分为view层和model层。在view层面可以很方面的获取到request信息，但是在model层是获取不到。&lt;/p&gt;
+&lt;p&gt;搜索了一番，发现了很做骚操作，简要地记录一下&lt;/p&gt;
+&lt;p&gt;关键词: &lt;code&gt;django get current user in model/signal&lt;/code&gt;&lt;/p&gt;
+&lt;h2 id=&quot;方法一&quot;&gt;&lt;a href=&quot;#方法一&quot; class=&quot;headerlink&quot; title=&quot;方法一&quot;&gt;&lt;/a&gt;方法一&lt;/h2&gt;&lt;p&gt;也是最常见的方法，中间件中获取request信息，保存在当前线程中&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;from threading import current_thread
+
+from django.utils.deprecation import MiddlewareMixin
+
+
+_requests = {}
+
+
+def current_request():
+    return _requests.get(current_thread().ident, None)
+
+
+class RequestMiddleware(MiddlewareMixin):
+
+    def process_request(self, request):
+        _requests[current_thread().ident] = request
+
+    def process_response(self, request, response):
+        # when response is ready, request should be flushed
+        _requests.pop(current_thread().ident, None)
+        return response
+
+    def process_exception(self, request, exception):
+        # if an exception has happened, request should be flushed too
+         _requests.pop(current_thread().ident, None)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;参见&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://stackoverflow.com/a/36328564/5808718&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Django: Get current user in model save&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&quot;方法二&quot;&gt;&lt;a href=&quot;#方法二&quot; class=&quot;headerlink&quot; title=&quot;方法二&quot;&gt;&lt;/a&gt;方法二&lt;/h2&gt;&lt;p&gt;在pre_save的时候，从堆栈信息中信息中获取request对象。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;from django.db.models.signals import pre_save
+from django.dispatch import receiver
+
+@receiver(pre_save)
+def my_callback(sender, **kwargs):
+    import inspect
+    for frame_record in inspect.stack():
+        if frame_record[3]==&amp;apos;get_response&amp;apos;:
+            request = frame_record[0].f_locals[&amp;apos;request&amp;apos;]
+            break
+    else:
+        request = None
+    ...
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;参见&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://stackoverflow.com/a/8874383&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Get current user log in signal in Django&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&quot;方法三&quot;&gt;&lt;a href=&quot;#方法三&quot; class=&quot;headerlink&quot; title=&quot;方法三&quot;&gt;&lt;/a&gt;方法三&lt;/h2&gt;&lt;p&gt;单例&lt;/p&gt;
+&lt;p&gt;中间件中获取到请求用户，存储在单例中。线程安全？？？&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://stackoverflow.com/a/7469395&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Get current user log in signal in
         
       
     
@@ -83,7 +160,47 @@
         
         
           &lt;h1 id=&quot;个人信息管理&quot;&gt;&lt;a href=&quot;#个人信息管理&quot; class=&quot;headerlink&quot; title=&quot;个人信息管理&quot;&gt;&lt;/a&gt;个人信息管理&lt;/h1&gt;&lt;p&gt;关于个人信息管理流程的思考&lt;/p&gt;
-&lt;h2 id=&quot;知识的获取&quot;&gt;&lt;a href=&quot;#知识的获取&quot;
+&lt;h2 id=&quot;知识的获取&quot;&gt;&lt;a href=&quot;#知识的获取&quot; class=&quot;headerlink&quot; title=&quot;知识的获取&quot;&gt;&lt;/a&gt;知识的获取&lt;/h2&gt;&lt;p&gt;信息来源的问题，日常生活接触到的事物，有意义的无意义的。信息是知识的超集，信息中包含一些杂音。我们会被动的接受许多信息，而这些信息很多是无意义的，需要对其过滤。&lt;/p&gt;
+&lt;p&gt;获取知识的形式&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;被动获取，被其他信息源告知，这个信息可能是包含了表面层次的 &lt;code&gt;词汇&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;主动获取，获取信息后，深入查找其相关信息包含关于这个&lt;code&gt;词汇&lt;/code&gt;的 &lt;code&gt;释义&lt;/code&gt;。这种信息，是多个 &lt;code&gt;词汇&lt;/code&gt; 汇聚后思考形成的 &lt;code&gt;想法&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;个人输出，通过内在的沉淀，对某个知识有深入的了解，最后形成关于该知识的 知识体系。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;过滤信息&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;把控信息的源头，RSS订阅 从可信的人那里获取信息，防止被铺天盖地的广告和辣鸡信息淹没&lt;/li&gt;
+&lt;li&gt;个人筛选，个人会倾向于选取自己感兴趣的信息。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;知识的管理&quot;&gt;&lt;a href=&quot;#知识的管理&quot; class=&quot;headerlink&quot; title=&quot;知识的管理&quot;&gt;&lt;/a&gt;知识的管理&lt;/h2&gt;&lt;p&gt;首先日常生活中接触的到的事物，然后感兴趣对其深入了解，对事物的诠释，录入词库方便日后检索 &amp;gt; &lt;a href=&quot;https://www.notion.so/dc80adb5-a54f-4b3f-851f-a856e22676a3&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;WIKI&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;这个时候可能形成对事物更加深入的看法，比如当前这样的 对个人信息管理的看法记录成笔记 &amp;gt; &lt;a href=&quot;https://www.notion.so/caa783ee-ef0c-4a77-bc7a-ba4cba9c47c7&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;即兴笔记&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;即 &lt;code&gt;词条&lt;/code&gt; 对应 WIKI，对词条的&lt;code&gt;思考&lt;/code&gt; 对应 即兴笔记，多条 即兴笔记 这里汇集成一篇输出成型的 blog&lt;/p&gt;
+&lt;h2 id=&quot;流程&quot;&gt;&lt;a href=&quot;#流程&quot; class=&quot;headerlink&quot; title=&quot;流程&quot;&gt;&lt;/a&gt;流程&lt;/h2&gt;&lt;p&gt;把思考写下来，将思考形式化，会发现，知识存在的一种结构性。例如当前这篇思考。&lt;/p&gt;
+&lt;p&gt;从 知识获取的形式 到 知识管理。 其实内在是一样的，只不过表述不同。&lt;/p&gt;
+&lt;p&gt;总体来说就是 input think output&lt;/p&gt;
+&lt;p&gt;输入的是&lt;code&gt;词汇&lt;/code&gt; 过程中是对于词汇的&lt;code&gt;思考&lt;/code&gt; 最后思考聚合沉淀变成吸收的&lt;code&gt;知识&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;如果想要获取知识，首先要给他一个名称，这个观点类似于，《写给大家看的设计书》中提到的观点&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;很多年前的一个圣诞节，我收到一份圣诞礼物，是一本关于如何认识各种树的书。当时我住在父母家，所有礼物都打开后，我决定出去走走，认一认邻居家的树。出去之前我读了书的一部分。其中提到的第一种树是约书亚树，只需要两个线索就能认出它。由于约书亚树相当怪异，所以看到书中它的照片时，我对自己说：“哦，北加利福尼亚绝对没有这种树。这种树太怪异了。如果我见过，肯定应该有印象，可我以前从来没有见过。”&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;之后我拿着这本书走出家门。我的父母住在一个小巷子里，这里共有 6 家住户。其中 4 家的前院里都赫然立着约书亚树。我住在那里已经有 13 年了，此前居然从未注意过约书亚树。我在这个街区转了转，发现似乎每一家布置新居时都会到苗圃买约书亚树，至少 80% 的住家前院都种有约书亚树。而我在此之前居然从来没有注意过！在我知道了这种树之后，我是说在我能够说出它的名字后，它就无处不在了。这正是我要强调的：一旦能够说出什么东西的名字，就会很容易注意到它。你就会掌握它，拥有它，让它受你所控。&lt;/p&gt;
+&lt;p&gt;那么总结起来，获取知识的过程应该是这样的&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;获取信息（过滤出来的有意义的信息），这个过程实际上是在获取关键字 get keyword&lt;/li&gt;
+&lt;li&gt;获取关键字的过程 实际上是在命名 name it&lt;/li&gt;
+&lt;li&gt;对关键字的诠释 desc&lt;/li&gt;
+&lt;li&gt;对关键字的思考 think&lt;/li&gt;
+&lt;li&gt;对思考的沉淀，产出，形成自己的知识  get it&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;其他思考&quot;&gt;&lt;a href=&quot;#其他思考&quot; class=&quot;headerlink&quot; title=&quot;其他思考&quot;&gt;&lt;/a&gt;其他思考&lt;/h2&gt;&lt;h3 id=&quot;命名的力量&quot;&gt;&lt;a href=&quot;#命名的力量&quot; class=&quot;headerlink&quot; title=&quot;命名的力量&quot;&gt;&lt;/a&gt;命名的力量&lt;/h3&gt;&lt;p&gt;我在上面提到的&lt;code&gt;词汇&lt;/code&gt;、&lt;code&gt;关键字&lt;/code&gt;。它们其实指的是同一个东西，如果你不能以统一的名称来称呼它们，就会发现很难构建出知识。&lt;/p&gt;
+&lt;p&gt;它们可能是近义的，所有你必须理解清楚，它们到底是不是同一个东西。否则在构建知识的过程中会产生混乱，混乱增多关于这个知识的构建就会崩塌。理解不够彻底&lt;/p&gt;
+&lt;p&gt;命名其实是一个确定唯一的过程，如果表达这个知识的近义词很多，而你又不理解，它们是否指代的是同一个东西。 用编程的思维来看，这个时候变量名混乱，code 可读性差，导致无法理解。&lt;/p&gt;
+&lt;p&gt;如果关于 这个知识的系统里面，有很多信息。在你完全没有掌握这个系统的时候，系统总是熵增的，即混乱的。理解的过程实际上是将，同义词、近义词的数量缩减的过程，这个时候熵减。混乱度降低就可以更好的理解。&lt;/p&gt;
+&lt;p&gt;实际上还是一个庖丁解牛的过程，细分，分类。脑袋就是一台机器，复杂的信息，必须要被拆分成简单的信息才能被理解。&lt;/p&gt;
+&lt;h3 id=&quot;混乱与焦虑&quot;&gt;&lt;a href=&quot;#混乱与焦虑&quot; class=&quot;headerlink&quot; title=&quot;混乱与焦虑&quot;&gt;&lt;/a&gt;混乱与焦虑&lt;/h3&gt;&lt;p&gt;通过刚才的梳理，本来混乱不堪的notion，变得有条理。顿时感觉心里少了些焦虑。人们倾向于看到有条理的事物，这会使人愉悦。如果混乱不堪则提不起兴趣，无聊，当无聊累加到一定程度，就会产生焦虑。所以混乱是焦虑的源头？&lt;/p&gt;
+&lt;p&gt;写作是内在思考的逻辑体现，表达出来之后，可以对逻辑进行处理校正。这样信息会变得有条理。&lt;/p&gt;
+&lt;p&gt;所以写作是很重要的&lt;/p&gt;
+&lt;h2 id=&quot;观点提炼&quot;&gt;&lt;a href=&quot;#观点提炼&quot; class=&quot;headerlink&quot;
         
       
     
